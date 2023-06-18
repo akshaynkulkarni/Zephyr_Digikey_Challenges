@@ -2,7 +2,7 @@
 
 #include "led.h"
 
-Led::Led(const gpio_dt_spec& user_pin  = m_def_pin) : m_pin(user_pin) {}
+Led::Led(const gpio_dt_spec &user_pin = m_def_pin) : m_pin(user_pin) {}
 
 int Led::Init() {
   if (!gpio_is_ready_dt(&m_pin)) {
@@ -19,18 +19,10 @@ int Led::Init() {
   return 0;
 }
 
-int Led::DeInit() {
-    return gpio_pin_configure_dt(&m_pin, GPIO_DISCONNECTED);
-}
+int Led::DeInit() { return gpio_pin_configure_dt(&m_pin, GPIO_DISCONNECTED); }
 
-int Led::Toggle() {
-    return gpio_pin_toggle_dt(&m_pin);
-}
+int Led::Toggle() { return gpio_pin_toggle_dt(&m_pin); }
 
-int Led::On() {
-    return gpio_pin_set_dt(&m_pin, true);
-}
+int Led::On() { return gpio_pin_set_dt(&m_pin, true); }
 
-int Led::Off() {
-    return gpio_pin_set_dt(&m_pin, false);
-}
+int Led::Off() { return gpio_pin_set_dt(&m_pin, false); }
