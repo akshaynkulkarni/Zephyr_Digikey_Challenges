@@ -25,11 +25,8 @@ K_THREAD_STACK_DEFINE(stack_thread_0, kThreadStackSize);
 constexpr int thread_1_prio = 1;
 constexpr int thread_0_prio = 1;
 
-#if CONFIG_BOARD_ESP_WROVER_KIT // TBD, explore overlays
-constexpr gpio_dt_spec led_pin = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-#else
-constexpr gpio_dt_spec led_pin = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-#endif
+// In the corresponding DT overlays, we defined same gpio pin with same alias
+constexpr gpio_dt_spec led_pin = GPIO_DT_SPEC_GET(DT_ALIAS(userled0), gpios);
 
 Led led{led_pin};
 
