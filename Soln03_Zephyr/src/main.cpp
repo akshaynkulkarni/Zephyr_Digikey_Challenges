@@ -1,11 +1,11 @@
-#include <atomic>
 #include <iostream>
 #include <string>
+#include <atomic>
 #include <cstring>
 
+#include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/uart.h>
-#include <zephyr/kernel.h>
 
 #include "led.h"
 
@@ -18,17 +18,18 @@ constexpr const size_t kThreadStackSize = 4 * 1024;
 #else
 constexpr const size_t kThreadStackSize = 2 * 1024;
 #endif
-static k_thread thread_1;
+
 static k_thread thread_0;
+static k_thread thread_1;
 
-static k_tid_t thread_1_tid;
 static k_tid_t thread_0_tid;
+static k_tid_t thread_1_tid;
 
-K_THREAD_STACK_DEFINE(stack_thread_1, kThreadStackSize);
 K_THREAD_STACK_DEFINE(stack_thread_0, kThreadStackSize);
+K_THREAD_STACK_DEFINE(stack_thread_1, kThreadStackSize);
 
-constexpr const int thread_1_prio = 1;
 constexpr const int thread_0_prio = 1;
+constexpr const int thread_1_prio = 1;
 
 // In the corresponding DT overlays, we defined same gpio pin with same alias
 constexpr const gpio_dt_spec led_pin =
@@ -91,8 +92,8 @@ static void uart_read_thread(void *param1, void *param2, void *param3) {
         std::cout << "\n\rEnter only numbers[0-9], No delay time update!"
                   << std::endl;
       }
-      index = 0;
       memset(read_buff, 0, index); // Clear the buffer
+      index = 0;
     }
     k_msleep(UART_DELAY);
   }
