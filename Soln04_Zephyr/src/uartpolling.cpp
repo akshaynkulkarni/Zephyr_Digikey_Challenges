@@ -11,7 +11,10 @@ int UartPolling::Init() { return uart_configure(m_port, &config); }
 
 int UartPolling::IsReady() { return device_is_ready(m_port); }
 
-int UartPolling::DeInit() { return 0; }
+int UartPolling::DeInit() {
+  uart_rx_disable(m_port);
+  return 0;
+}
 
 void UartPolling::Write(const unsigned char &buffer) {
   uart_poll_out(m_port, buffer);

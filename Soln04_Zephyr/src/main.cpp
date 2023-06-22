@@ -3,9 +3,9 @@
 #include <iostream>
 #include <string>
 
-#include <zephyr/kernel.h>
-#include <zephyr/drivers/gpio.h>
 #include "uartpolling.h"
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/kernel.h>
 
 #include "led.h"
 
@@ -106,12 +106,17 @@ extern "C" int main(void) {
     return 0;
   }
 
-  while (!user_com_port.Init()) {
-    std::cout << "Uart port is not ready... waiting.." << std::endl;
-    k_msleep(2 * DELAY2);
+  if (!user_com_port.Init()) {
+    std::cout << "uart config failed ..." << std::endl;
+    return 0;
   }
 
-  std::cout << "Starting Uart Thread ..." << std::endl;
+  if (!user_com_port.IsReady()) {
+    std::cout << "uart port not found..." << std::endl;
+    return 0;
+  }
+
+  std::cout << "Starting uart Thread ..." << std::endl;
 
   thread_0_tid = k_thread_create(
       &thread_0, stack_thread_0, K_THREAD_STACK_SIZEOF(stack_thread_0),

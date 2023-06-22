@@ -5,7 +5,7 @@ class UartPolling {
 private:
   using ptr_device_const = const device *;
   constexpr static ptr_device_const p_def_port =
-      (DEVICE_DT_GET(DT_ALIAS(usercom0)));
+      (DEVICE_DT_GET(DT_ALIAS(usercom1)));
   ptr_device_const m_port;
 
   constexpr static uart_config def_config = {.baudrate = 115200U,
