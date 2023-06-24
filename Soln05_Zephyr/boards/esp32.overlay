@@ -1,0 +1,40 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Akshay Narahari Kulkarni <akshaynkulkarni@gmail.com>
+ */
+/ {
+	aliases {
+		userled0 = &customled0;
+		usercom0 = &uart0;
+		usercom1 = &uart1; // Tx: GPIO 27, RX: GPIO 26
+		led0 = &blue_led;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		blue_led: led_0 {
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+		};
+		customled0: user_led0 {
+			gpios = <&gpio0 4 (GPIO_ACTIVE_LOW)>;
+		};
+	};
+};
+//Override the pins; GPIO 9 and GPIO 10 are connected to flash. 
+&pinctrl {
+	uart1_default: uart1_default {
+		group1 {
+			pinmux = <UART1_TX_GPIO27>;
+			output-high;
+		};
+		group2 {
+			pinmux = <UART1_RX_GPIO26>;
+			bias-pull-up;
+		};
+	};
+};
+
+&uart1 {
+	status = "okay";
+};
