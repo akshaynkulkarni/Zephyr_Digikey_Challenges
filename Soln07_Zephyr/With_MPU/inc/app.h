@@ -4,7 +4,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/app_memory/app_memdomain.h>
 
-void user_thread_init(void *p1, void *p2, void *p3);
+void userspace_thread_init(void *p1, void *p2, void *p3);
 
 extern struct k_mem_partition user_partition;
 #define USER_DATA	K_APP_DMEM(user_partition)

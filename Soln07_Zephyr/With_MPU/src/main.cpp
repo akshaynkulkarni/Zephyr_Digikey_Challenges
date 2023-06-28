@@ -17,7 +17,6 @@
 
 LOG_MODULE_REGISTER(main, CONFIG_LOG_DEFAULT_LEVEL);
 
-
 // Threads
 #if CONFIG_BOARD_ESP
 constexpr size_t kThreadStackSize = 4 * 1024;
@@ -25,32 +24,29 @@ constexpr size_t kThreadStackSize = 4 * 1024;
 constexpr size_t kThreadStackSize = 2 * 1024;
 #endif
 
-static k_thread user_thread;
-static k_tid_t user_thread_tid;
+static k_thread userspace_thread;
+static k_tid_t userspace_thread_tid;
 
-K_THREAD_STACK_DEFINE(stack_user_thread, kThreadStackSize);
+K_THREAD_STACK_DEFINE(stack_userspace_thread, kThreadStackSize);
 
 constexpr int thread_priority = K_PRIO_PREEMPT(-1);
 
 extern "C" int main(void) {
 
   LOG_INF("---Zephyr RTOS Semaphore Alternate Solution---");
-  // user_thread: Create mutexes and semaphores before starting tasks
-	LOG_INF("user partition: %p %zu", (void *)user_partition.start,
-		(size_t)user_partition.size);
+  // userspace threads: Create mutexes and semaphores in userspace
+  LOG_INF("user space application @ %p (%zu)", (void *)user_partition.start,
+          (size_t)user_partition.size);
 
-  user_thread_tid = k_thread_create(
-      &user_thread, stack_user_thread, K_THREAD_STACK_SIZEOF(stack_user_thread),
-      user_thread_init, nullptr, nullptr, nullptr, thread_priority,
-      K_INHERIT_PERMS, K_FOREVER);
+  userspace_thread_tid = k_thread_create(
+      &userspace_thread, stack_userspace_thread,
+      K_THREAD_STACK_SIZEOF(stack_userspace_thread), userspace_thread_init,
+      nullptr, nullptr, nullptr, thread_priority, K_INHERIT_PERMS, K_FOREVER);
 
-    k_thread_start(user_thread_tid);
+  k_thread_start(userspace_thread_tid);
 
-    k_thread_join(user_thread_tid, K_FOREVER);
-  while (true) {
-    // Do nothing but allow yielding to lower-priority tasks
-    k_msleep(1000U);
-  }
+  k_thread_join(userspace_thread_tid, K_FOREVER);
 
+  LOG_INF("---end of main---");
   return 0;
 }
