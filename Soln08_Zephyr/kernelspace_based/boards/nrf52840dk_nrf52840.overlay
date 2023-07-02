@@ -8,6 +8,8 @@
 		userled0 = &customled0;
 		usercom0 = &uart0; //usb com
 		usercom1 = &uart1; // RX: P1.1 and TX: P1.2
+		user-pwm-0 = &pwm0;
+		user-pwm-led = &pwm_led0;
 	};
 
 	leds {
@@ -20,3 +22,4 @@
 &uart1 {
 	status = "okay";
 };
+

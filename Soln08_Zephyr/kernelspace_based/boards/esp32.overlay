@@ -11,6 +11,8 @@
 		usercom0 = &uart0;
 		usercom1 = &uart1; // Tx: GPIO 27, RX: GPIO 26
 		led0 = &blue_led;
+		user-pwm-0 = &ledc0;
+		user-pwm-led = &pwm_led4;
 	};
 
 	leds {
@@ -20,6 +22,15 @@
 		};
 		customled0: user_led0 {
 			gpios = <&gpio0 4 (GPIO_ACTIVE_LOW)>;
+		};
+	};
+
+	//Inspired from sample pwm esp32 dts
+	pwmleds {
+		compatible = "pwm-leds";
+		pwm_led4: gpio0_2 {
+			label = "PWM Blue led";
+			pwms = <&ledc0 0 PWM_MSEC(10U) PWM_POLARITY_NORMAL>;
 		};
 	};
 };
@@ -35,8 +46,28 @@
 			bias-pull-up;
 		};
 	};
+
+	ledc0_default: ledc0_default {
+		group1 {
+			pinmux = <LEDC_CH0_GPIO2>;
+			output-enable;
+		};
+	};
 };
 
 &uart1 {
 	status = "okay";
+};
+
+&ledc0 {
+	status = "okay";
+	pinctrl-0 = <&ledc0_default>;
+	pinctrl-names = "default";
+	#address-cells = <1>;
+	#size-cells = <0>;
+	
+	channel0@0 {
+		reg = <0x0>;
+		timer = <0>;
+	};
 };

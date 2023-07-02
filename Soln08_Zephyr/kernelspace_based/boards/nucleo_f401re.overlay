@@ -7,7 +7,9 @@
 	aliases {
 		userled0 = &customled0;
 		usercom0 = &usart2; //usb com
-		usercom1 = &usart1; // RX: P1.1 and TX: P1.2
+		usercom1 = &usart1; // RX: P1.1 and TX: P1.2 
+		user-pwm-0 = &pwm2;
+		user-pwm-led = &green_pwm_led;
 	};
 
 	leds {
