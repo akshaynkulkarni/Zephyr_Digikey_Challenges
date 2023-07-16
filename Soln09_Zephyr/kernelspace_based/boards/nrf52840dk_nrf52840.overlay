@@ -1,0 +1,31 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Akshay Narahari Kulkarni <akshaynkulkarni@gmail.com>
+ */
+/ {
+	aliases {
+		userled0 = &customled0;
+		usercom0 = &uart0; //usb com
+		usercom1 = &uart1; // RX: P1.1 and TX: P1.2
+		user-pwm-0 = &pwm0;
+		user-pwm-led = &pwm_led0;
+		user-adc = &adc;
+	};
+
+	leds {
+		customled0: user_led0 {
+			gpios = <&gpio0 04 GPIO_ACTIVE_LOW>;
+		};
+	};
+};
+
+&uart1 {
+	status = "okay";
+};
+
+&adc {
+	status = "okay";
+};
+
+
