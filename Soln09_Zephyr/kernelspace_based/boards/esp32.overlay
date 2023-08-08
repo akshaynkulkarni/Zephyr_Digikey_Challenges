@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2021 Andrei-Edward Popa
  * Copyright (c) 2022 Espressif Systems (Shanghai) Co., Ltd.
+ * Copyright (c) 2022 Wolter HV <wolterhv@gmx.de>
  * Akshay Narahari Kulkarni <akshaynkulkarni@gmail.com>
  * 
  * SPDX-License-Identifier: Apache-2.0
@@ -34,6 +35,11 @@
 			label = "PWM Blue led";
 			pwms = <&ledc0 0 PWM_MSEC(10U) PWM_POLARITY_NORMAL>;
 		};
+	};
+
+	zephyr,user {
+		io-channels =
+			<&adc0 0>;
 	};
 };
 //Override the pins; GPIO 9 and GPIO 10 are connected to flash. 
@@ -74,3 +80,16 @@
 	};
 };
 
+&adc0 {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	channel@0 { //Pin 36
+		reg = <0>;
+		zephyr,gain = "ADC_GAIN_1_4";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+};

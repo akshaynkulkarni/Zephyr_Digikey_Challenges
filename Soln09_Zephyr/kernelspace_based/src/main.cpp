@@ -72,38 +72,10 @@ k_work adc_read_work = {
     .handler = adc_read_work_handler,
 };
 
-#define DBG 0
-void adc_read_work_handler(struct k_work *work) {
-  if (((head + 1) % buffer_len) == tail) {
-    // drop the elements, buffer full, sorry
-    LOG_INF("ISR: Sorry! Buffer Full!! dropping adc_values....");
-    return;
-  }
+// ADC:
 
-  static size_t buffer_mem_count = 0;
-
-  if (buffer_mem_count < buffer_mem_len) {
-    size_t l_buffer_mem_count = buffer_mem_count;
-
-    ring_buffer[head].adc_val[buffer_mem_count] =
-        buffer_mem_count; // adc1_get_raw(ADC1_CHANNEL_5); FIXME:...
-    buffer_mem_count++;
-
-#if DBG
-    LOG_INF("ISR ring_buffer[%d].adc_val[%d] = %d", head, l_buffer_mem_count,
-            ring_buffer[head].adc_val[l_buffer_mem_count]);
-#endif
-  }
-
-  if (buffer_mem_count >= buffer_mem_len) {
-
-    head = ((head + 1) % buffer_len); // let's fill the next buffer element
-    buffer_mem_count = 0;             // reset the member buffer count
-
-    // Signal a buffer is ready to be consumed
-    k_sem_give(&signal_buff_full);
-  }
-}
+static const struct adc_dt_spec adc_chan0 =
+    ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
 void adc_read_timer_expiry_handler(k_timer *id) {
   // handle timer expiry
@@ -120,8 +92,20 @@ void adc_read_timer_expiry_handler(k_timer *id) {
   if (buffer_mem_count < buffer_mem_len) {
     size_t l_buffer_mem_count = buffer_mem_count;
 
-    ring_buffer[head].adc_val[buffer_mem_count] =
-        buffer_mem_count; // adc1_get_raw(ADC1_CHANNEL_5); FIXME:...
+    static uint16_t val_mv;
+    static struct adc_sequence sequence = {
+        .buffer = &val_mv,
+        /* buffer size in bytes, not number of samples */
+        .buffer_size = sizeof(val_mv),
+    };
+    (void)adc_sequence_init_dt(&adc_chan0, &sequence);
+    int err = adc_read(adc_chan0.dev, &sequence);
+    if (err < 0) {
+      LOG_ERR("unable to read ADC channel 0(%d)\n", err);
+      return;
+    }
+
+    ring_buffer[head].adc_val[buffer_mem_count] = val_mv;
     buffer_mem_count++;
 
 #if DBG
@@ -181,7 +165,6 @@ static void uart_read_thread(void *param1, void *param2, void *param3) {
   unsigned char read_buff[read_buff_size] = {'0'};
 
   while (true) {
-
     do {
       while (!(ret = user_com_port.Read(read_buff[index]))) {
         user_com_port.Write(read_buff[index++]);
@@ -206,8 +189,13 @@ static void uart_read_thread(void *param1, void *param2, void *param3) {
           l_avg = avg_adc.load();
           k_mutex_unlock(&avg_mutex);
         }
-        LOG_INF("Average is %f, Voltage at Pin = %u mV", l_avg, 0);
-        // l_avg, esp_adc_cal_raw_to_voltage(l_avg, &adc1_chars));
+        int32_t val_mv = (int32_t)l_avg;
+        int err = adc_raw_to_millivolts_dt(&adc_chan0, &val_mv);
+        if (err) {
+          LOG_ERR("Error in adc_raw_to_millivolts_dt: %d", err);
+          continue;
+        }
+        LOG_INF("Average is %f, Voltage at Pin = %u mV", l_avg, val_mv);
       }
     }
 
@@ -219,8 +207,17 @@ static void uart_read_thread(void *param1, void *param2, void *param3) {
 
 extern "C" int main(void) {
 
-  // TBD: ADC init
-  //  ----
+  // ADC ch 0 init
+		if (!device_is_ready(adc_chan0.dev)) {
+			LOG_ERR("ADC %s not ready\n", adc_chan0.dev->name);
+			return 0;
+		}
+
+		int err = adc_channel_setup_dt(&adc_chan0);
+		if (err < 0) {
+			LOG_ERR("ADC channel 0 failed (%d)\n", err);
+			return 0;
+		}
 
   if (k_mutex_init(&avg_mutex)) {
     LOG_ERR("mutex avg_mutex init failed");

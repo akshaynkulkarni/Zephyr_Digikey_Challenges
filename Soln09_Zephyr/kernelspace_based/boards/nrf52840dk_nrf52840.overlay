@@ -1,6 +1,7 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  *
+ * Copyright (c) 2022 Nordic Semiconductor ASA
  * Akshay Narahari Kulkarni <akshaynkulkarni@gmail.com>
  */
 / {
@@ -18,14 +19,28 @@
 			gpios = <&gpio0 04 GPIO_ACTIVE_LOW>;
 		};
 	};
+	zephyr,user {
+		io-channels = <&adc 0>;
+	};
 };
 
 &uart1 {
 	status = "okay";
 };
 
+// Based on the code from sample/ examples on the zephyr sdk
 &adc {
-	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	channel@0 {
+		reg = <0>;
+		zephyr,gain = "ADC_GAIN_1_6";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,input-positive = <NRF_SAADC_AIN1>; /* P0.03 */
+		zephyr,resolution = <12>;
+	};
 };
 
 
