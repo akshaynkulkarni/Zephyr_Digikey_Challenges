@@ -1,0 +1,46 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Copyright (c) 2022 Nordic Semiconductor ASA
+ * Akshay Narahari Kulkarni <akshaynkulkarni@gmail.com>
+ */
+/ {
+	aliases {
+		userled0 = &customled0;
+		usercom0 = &uart0; //usb com
+		usercom1 = &uart1; // RX: P1.1 and TX: P1.2
+		user-pwm-0 = &pwm0;
+		user-pwm-led = &pwm_led0;
+		user-adc = &adc;
+	};
+
+	leds {
+		customled0: user_led0 {
+			gpios = <&gpio0 04 GPIO_ACTIVE_LOW>;
+		};
+	};
+	zephyr,user {
+		io-channels = <&adc 0>;
+	};
+};
+
+&uart1 {
+	status = "okay";
+};
+
+// Based on the code from sample/ examples on the zephyr sdk
+&adc {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	channel@0 {
+		reg = <0>;
+		zephyr,gain = "ADC_GAIN_1_6";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,input-positive = <NRF_SAADC_AIN1>; /* P0.03 */
+		zephyr,resolution = <12>;
+	};
+};
+
+
