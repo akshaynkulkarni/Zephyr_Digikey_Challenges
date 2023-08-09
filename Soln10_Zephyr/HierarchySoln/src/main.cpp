@@ -38,28 +38,31 @@ constexpr size_t kThreadStackSize = 2 * 1024;
 #endif
 
 // Globals
-static k_sem bin_sem{NULL};            // Wait for parameters to be read
-static k_sem done_sem{NULL};           // Notifies main task when done
-//static k_mutex arbitrator_mutex{NULL}; // arbitrator_mutex
+static k_sem bin_sem{NULL};  // Wait for parameters to be read
+static k_sem done_sem{NULL}; // Notifies main task when done
+// static k_mutex arbitrator_mutex{NULL}; // arbitrator_mutex
 static k_mutex chopstick[NUM_TASKS]{NULL};
 
 constexpr std::string_view Philosopher_task_TAG = "Philosopher_task";
 constexpr std::string_view app_main_task_TAG = "app_main_task";
 
-static k_thread thread[NUM_TASKS];
+// static k_thread thread[NUM_TASKS];
 
-static k_tid_t thread_tid[NUM_TASKS];
+// static k_tid_t thread_tid[NUM_TASKS];
 
-#define K_THREAD_STACK_DEFINE_GROUP(x)                                                      \
-  K_THREAD_STACK_DEFINE(stack_thread_##x, kThreadStackSize);
+constexpr int thread_prio{10};
 
-FOR_EACH(K_THREAD_STACK_DEFINE_GROUP, (;), 0, 1, 2, 3, 4);
+void eat(void *param1, void *param2, void *param3);
 
-k_thread_stack_t *stack_eat_thread_ptr[] = {stack_thread_0, stack_thread_1,
-                                            stack_thread_2, stack_thread_3,
-                                            stack_thread_4};
+#define K_THREAD_CREATE_GROUP(x)                                               \
+  int param##x = x;                                                            \
+  K_THREAD_DEFINE(thread_##x, kThreadStackSize, eat, (void *)&param##x, NULL,  \
+                  NULL, thread_prio, 0, 0);
 
-constexpr int thread_prio[NUM_TASKS]{10};
+FOR_EACH(K_THREAD_CREATE_GROUP, (;), 0, 1, 2, 3, 4);
+
+k_tid_t eat_threads_tid_ptr[] = {thread_0, thread_1, thread_2, thread_3,
+                                 thread_4};
 
 // The only task: eating
 void eat(void *param1, void *param2, void *param3) {
@@ -139,11 +142,6 @@ extern "C" int main(void) {
 
   // Have the philosphers start eating
   for (uint8_t i = 0; i < NUM_TASKS; i++) {
-    thread_tid[i] =
-        k_thread_create(&thread[i], stack_eat_thread_ptr[i],
-                        K_THREAD_STACK_SIZEOF(stack_thread_0), eat, (void *)&i,
-                        NULL, NULL, thread_prio[i], 0, K_NO_WAIT);
-
     k_sem_take(&bin_sem, K_FOREVER);
   }
 
@@ -154,8 +152,6 @@ extern "C" int main(void) {
 
   // Say that we made it through without deadlock
   LOG_INF("%s: Done! No deadlock occurred!", app_main_task_TAG.data());
-
- // k_thread_abort(k_current_get());
 
   while (true) {
     // Do nothing
